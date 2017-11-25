@@ -91,7 +91,7 @@ $(function() {
 			let repayment_rate = getRepaymentString(results[i]);
 			let cumulative_debt = getCumulativeDebt(results[i]);
 			let monthly_payments = getMonthlyPayment(results[i]);
-			let html_to_append = `<div class="col-md-4 thumbnail"><a target="_blank" href=${results[i]['school.school_url']} class='school-name'>${name}</a><span class='city-and-state'>${city_and_state}</span><div class="key-stats"><span class='net-price'>${net_price}</span><span class='repayment-rate'>${cumulative_debt}</span><span class='repayment-rate'>${monthly_payments}</span><span class='repayment-rate'>${repayment_rate}</span></div></div>`;
+			let html_to_append = `<div class="col-md-4 thumbnail"><a target="_blank" href=http://${results[i]['school.school_url']} class='school-name'>${name}</a><span class='city-and-state'>${city_and_state}</span><div class="key-stats"><span class='net-price'>${net_price}</span><span class='repayment-rate'>${cumulative_debt}</span><span class='repayment-rate'>${monthly_payments}</span><span class='repayment-rate'>${repayment_rate}</span></div></div>`;
 			$('.thumbnail-list').append(html_to_append);
 		}
 	}
