@@ -30,6 +30,7 @@ body {
 
 .pagination {
 	margin-bottom:40px;
+	display:none;
 }
 
 .school-name, .total-students, .city-and-state, .net-price, .school-url, .repayment-rate {

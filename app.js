@@ -13,9 +13,9 @@ $(function() {
 	    url: COLLEGEBOARD_URL,
 	    data: {
 	      api_key: api_key,
-	      fields: "school.name,school.school_url,school.city,school.state,2015.student.size,2015.cost.avg_net_price.overall,2015.repayment.3_yr_default_rate",
+	      fields: "school.name,school.school_url,school.city,school.state,2015.student.size,2015.cost.avg_net_price.overall,2015.repayment.3_yr_default_rate,2015.aid.median_debt.completers.monthly_payments,2015.aid.cumulative_debt.25th_percentile,2015.aid.cumulative_debt.75th_percentile",
 	      "school.degrees_awarded.highest":4,
-	      _zip: 30308,
+	      _zip: getZipcode(),
 	      _distance: 60,
 	      _page: page_number
 	    },
@@ -36,19 +36,37 @@ $(function() {
 	}
 
 	function getTotalStudentString(result) {
-		return `${result['2015.student.size']} students`;
+		var num = numeral(result['2015.student.size']).format('0,0');
+		return `${num} students`;
 	}
 
 	function getNetPriceString(result) {
-		return `$${result['2015.cost.avg_net_price.overall']}`;
+		var num = numeral(result['2015.cost.avg_net_price.overall']).format('$0,0')
+		return `Cost (per year): ${num}`;
 	}
 
-	// function getSchoolUrlString(result) {
-	// 	return `${result['school.school_url']}`;
-	// }
-
 	function getRepaymentString(result) {
-		return `${result['2015.repayment.3_yr_default_rate']}`;
+		var num = numeral(result['2015.repayment.3_yr_default_rate']).format('0%');
+		return `3-year default rate: ${num}`;
+	}
+
+	function showOrHideResults(total_results) {
+		if (total_results > 20) {
+			$('.pagination').show();
+		} else {
+			$('.pagination').hide();
+		}
+	}
+
+	function getCumulativeDebt(result) {
+		var num1 = numeral(result['2015.aid.cumulative_debt.25th_percentile']).format('$0,0');
+		var num2 = numeral(result['2015.aid.cumulative_debt.75th_percentile']).format('$0,0');
+		return `Debt range: ${num1}-${num2}`;
+	}
+
+	function getMonthlyPayment(result) {
+		var num = numeral(result['2015.aid.median_debt.completers.monthly_payments']).format('$0,0');
+		return `Avg monthly payment: ${num}`;
 	}
 
 	function displayThumbnails(data) {
@@ -57,14 +75,16 @@ $(function() {
 		total_results = data['metadata']['total'];
 		page_number =  data['metadata']['page']
 		let results = data['results'];
+		showOrHideResults(total_results);
 		for (let i = 0; i < results.length; i++) {
 			let name = getNameString(results[i]);
 			let total_students = getTotalStudentString(results[i]);
 			let city_and_state = getCityAndState(results[i]);
 			let net_price = getNetPriceString(results[i]);
 			let repayment_rate = getRepaymentString(results[i]);
-			// let school_url = getSchoolUrlString(results[i]);
-			let html_to_append = `<div class="col-md-3 thumbnail"><a target="_blank" href=${results[i]['school.school_url']} class='school-name'>${name}</a><span class='city-and-state'>${city_and_state}</span><span class='total-students'>${total_students}</span><span class='net-price'>${net_price}</span><span class='repayment-rate'>${repayment_rate}</span></div>`;
+			let cumulative_debt = getCumulativeDebt(results[i]);
+			let monthly_payments = getMonthlyPayment(results[i]);
+			let html_to_append = `<div class="col-md-3 thumbnail"><a target="_blank" href=${results[i]['school.school_url']} class='school-name'>${name}</a><span class='city-and-state'>${city_and_state}</span><span class='total-students'>${total_students}</span><span class='net-price'>${net_price}</span><span class='repayment-rate'>${cumulative_debt}</span><span class='repayment-rate'>${monthly_payments}</span><span class='repayment-rate'>${repayment_rate}</span></div>`;
 			$('.thumbnail-list').append(html_to_append);
 		}
 	}
@@ -82,6 +102,10 @@ $(function() {
 		if (doesPageExist()) {
 			getDataFromApi(displayThumbnails);
 		} 
+	}
+
+	function getZipcode() {
+		return $(".query").val();
 	}
 
 	$('#search').submit(function(event) {
