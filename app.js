@@ -7,6 +7,7 @@ $(function() {
 
 	let total_results;
 	let page_number;
+	let total_pages;
 
 	function getDataFromApi(callback) {
 	  const settings = {
@@ -32,7 +33,7 @@ $(function() {
 	}
 
 	function getCityAndState(result) {
-		return `${result['school.city']}, ${result['school.state']}`;
+		return `${result['school.city']}, ${result['school.state']} &bull; ${numeral(result['2015.student.size']).format('0,0')} students`;
 	}
 
 	function getTotalStudentString(result) {
@@ -69,28 +70,33 @@ $(function() {
 		return `Avg monthly payment: ${num}`;
 	}
 
+	function setPageValues(data) {
+		page_number = 0;
+		total_results = data['metadata']['total'];
+		page_number =  data['metadata']['page']
+		total_pages = Math.floor(total_results / 20);
+	}
+
 	function displayThumbnails(data) {
 		console.log(data);
 		$('.thumbnail-list').empty()
-		total_results = data['metadata']['total'];
-		page_number =  data['metadata']['page']
+		setPageValues(data);
 		let results = data['results'];
 		showOrHideResults(total_results);
 		for (let i = 0; i < results.length; i++) {
 			let name = getNameString(results[i]);
-			let total_students = getTotalStudentString(results[i]);
+			// let total_students = getTotalStudentString(results[i]);
 			let city_and_state = getCityAndState(results[i]);
 			let net_price = getNetPriceString(results[i]);
 			let repayment_rate = getRepaymentString(results[i]);
 			let cumulative_debt = getCumulativeDebt(results[i]);
 			let monthly_payments = getMonthlyPayment(results[i]);
-			let html_to_append = `<div class="col-md-3 thumbnail"><a target="_blank" href=${results[i]['school.school_url']} class='school-name'>${name}</a><span class='city-and-state'>${city_and_state}</span><span class='total-students'>${total_students}</span><span class='net-price'>${net_price}</span><span class='repayment-rate'>${cumulative_debt}</span><span class='repayment-rate'>${monthly_payments}</span><span class='repayment-rate'>${repayment_rate}</span></div>`;
+			let html_to_append = `<div class="col-md-4 thumbnail"><a target="_blank" href=${results[i]['school.school_url']} class='school-name'>${name}</a><span class='city-and-state'>${city_and_state}</span><div class="key-stats"><span class='net-price'>${net_price}</span><span class='repayment-rate'>${cumulative_debt}</span><span class='repayment-rate'>${monthly_payments}</span><span class='repayment-rate'>${repayment_rate}</span></div></div>`;
 			$('.thumbnail-list').append(html_to_append);
 		}
 	}
 
 	function doesPageExist() {
-		let total_pages = total_results / 20;
 		if (page_number <= total_pages) {
 			return true;
 		} else {
@@ -110,14 +116,17 @@ $(function() {
 
 	$('#search').submit(function(event) {
 		event.preventDefault();
-		page_number = 0;
 		getDataFromApi(displayThumbnails);
 	});
 
 	$('.next-button').click(function(event) {
 		event.preventDefault();
-		page_number++;
-		nextOrBackButtonClicked()
+		console.log(total_pages);
+		if (page_number < total_pages) {
+			page_number++;
+			console.log(page_number);
+			nextOrBackButtonClicked();
+		}
 	});
 
 	$('.back-button').click(function(event) {
